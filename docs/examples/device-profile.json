@@ -1,0 +1,30 @@
+{
+  "device": {
+    "id": "device-1",
+    "model": "sample-device",
+    "driver": "SampleDriver"
+  },
+  "transport": {
+    "type": "tcp",
+    "host": "127.0.0.1",
+    "port": "502",
+    "connectTimeoutMs": 3000,
+    "readTimeoutMs": 1000,
+    "writeTimeoutMs": 1000,
+    "bufferSize": 4096
+  },
+  "protocol": {
+    "type": "modbus-tcp",
+    "station": 1,
+    "endianness": "BE"
+  },
+  "retry": {
+    "count": 3,
+    "timeoutMs": 1000,
+    "delayMs": 100,
+    "exponentialBackoff": true
+  },
+  "logging": {
+    "level": "INFO"
+  }
+}

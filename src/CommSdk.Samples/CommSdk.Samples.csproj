@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net48</TargetFramework>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\CommSdk.Core\CommSdk.Core.csproj" />
+    <ProjectReference Include="..\CommSdk.Transports\CommSdk.Transports.csproj" />
+    <ProjectReference Include="..\CommSdk.Protocols.Modbus\CommSdk.Protocols.Modbus.csproj" />
+    <ProjectReference Include="..\CommSdk.Devices\CommSdk.Devices.csproj" />
+  </ItemGroup>
+</Project>
