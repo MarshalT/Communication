@@ -1,0 +1,9 @@
+{
+  "version": "1.0",
+  "components": [
+    "Microsoft.VisualStudio.Workload.ManagedDesktop",
+    "Microsoft.NetCore.Component.SDK",
+    "Microsoft.Net.Component.4.8.SDK",
+    "Microsoft.Net.Component.4.8.TargetingPack"
+  ]
+}

@@ -22,6 +22,8 @@ dotnet test CommSdk.sln
 
 The target framework is `net48`; building the SDK on macOS requires a Windows/.NET Framework-compatible build environment for the final verification.
 
+如果 Windows 上打开解决方案后显示 `0 of 6 projects` 或 `The project file was unloaded`，请使用 Visual Studio 2022，并在 Visual Studio Installer 中安装“使用 .NET 的桌面开发”、“.NET Framework 4.8 SDK”和“.NET Framework 4.8 Targeting Pack”。关闭解决方案后，在仓库根目录执行 `dotnet restore CommSdk.sln`，再重新打开 `CommSdk.sln`；如果项目节点仍是灰色，可右键解决方案或项目选择 `Reload Project`，然后查看 `View > Output > Project and Solution` 中的具体错误。若之前手动卸载过项目，请先关闭 Visual Studio，再删除仓库根目录下的 `.vs` 用户缓存目录后重开。仓库根目录的 `.vsconfig` 可用于导入所需组件。
+
 ## Register and use a device
 
 ```csharp
@@ -53,7 +55,7 @@ using (var session = manager.Create(profile))
 
 `CommClient` serializes request/response operations, assembles protocol frames from transport chunks, validates Modbus transaction/slave/function identity, and retries transport failures according to `profile.retry`.
 
-如果只使用本示例的串口电表客户端，不需要在业务代码中手动注册组件。`ElectricityMeterClient` 已经封装了串口、Modbus RTU 和连接生命周期：
+如果只使用本示例的电表客户端，不需要在业务代码中手动注册组件。`ElectricityMeterClient` 已经封装了串口/TCP、Modbus 和连接生命周期：
 
 ```csharp
 using (var meter = ElectricityMeterClient.FromJsonFile("docs/examples/electricity-meter-profile.json"))
@@ -85,7 +87,17 @@ var energy = meter.ReadEnergy();
 Console.WriteLine("累计电量: " + energy + " kWh");
 ```
 
-The sample requires a real serial adapter and a meter that responds to the configured register map. If the meter uses a 64-bit value, IEEE-754 float, signed value, or a vendor-specific scaling rule, extend the driver decoder to match that device's register table.
+串口示例需要真实串口适配器和能够响应配置寄存器的电表。如果电表使用 64 位数值、IEEE-754 浮点数、有符号数或厂商专用倍率，需要按电表寄存器表扩展客户端中的解析逻辑。
+
+## TCP Modbus electricity meter example
+
+TCP 电表使用相同的 `ElectricityMeterClient`，只需要将配置切换为 `tcp` 和 `modbus-tcp`：
+
+```text
+dotnet run --project src/CommSdk.Samples -- docs/examples/electricity-meter-tcp-profile.json
+```
+
+示例默认连接 `192.168.1.100:502`，从站地址为 `1`。请根据电表或串口服务器的实际 IP、端口和寄存器表修改 [electricity-meter-tcp-profile.json](/Users/tangjianhong/脚本/Communication/docs/examples/electricity-meter-tcp-profile.json)。TCP 协议会自动维护 Modbus MBAP 事务号，调用代码不需要手动设置。
 
 ## Extension points
 

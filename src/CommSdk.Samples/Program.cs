@@ -15,12 +15,12 @@ namespace CommSdk.Samples
             LogManager.Current = new ConsoleLog();
 
             var profile = LoadProfile(args);
-            // ElectricityMeterClient 已经封装了串口和 Modbus RTU 通信。
+            // ElectricityMeterClient 已经封装了串口/TCP 和对应的 Modbus 通信。
             using (var meter = ElectricityMeterClient.Create(profile))
             {
                 try
                 {
-                    // 显式打开串口，便于展示设备会话的生命周期。
+                    // 显式打开连接，便于展示设备会话的生命周期。
                     meter.Open();
                     // 客户端会发送 03/04 读寄存器请求并返回换算后的 kWh 数值。
                     var energy = meter.ReadEnergy();

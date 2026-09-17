@@ -14,13 +14,14 @@ using CommSdk.Transports.Factories;
 namespace CommSdk.Samples
 {
     /// <summary>
-    /// 串口 Modbus RTU 电表客户端。
-    /// 电表协议参数直接封装在这里，使用者不需要注册驱动或了解 DeviceSession。
+    /// 串口/TCP Modbus 电表客户端。
+    /// 电表协议参数直接封装在这里，使用者不需要注册传输、协议或驱动。
     /// </summary>
     public sealed class ElectricityMeterClient : IDisposable
     {
         private readonly DeviceProfile _profile;
         private readonly CommClient _client;
+        private int _transactionId;
         private int _disposed;
 
         private ElectricityMeterClient(
@@ -32,23 +33,37 @@ namespace CommSdk.Samples
         }
 
         /// <summary>
-        /// 根据配置创建客户端。当前示例固定使用串口和 Modbus RTU。
+        /// 根据配置创建客户端。支持 serial + modbus-rtu 和 tcp + modbus-tcp。
         /// </summary>
         public static ElectricityMeterClient Create(DeviceProfile profile)
         {
             if (profile == null) throw new ArgumentNullException("profile");
-            if (profile.Transport == null || !string.Equals(profile.Transport.Type, "serial", StringComparison.OrdinalIgnoreCase))
-                throw new DeviceException("ElectricityMeterClient requires a serial transport");
-            if (profile.Protocol == null || !string.Equals(profile.Protocol.Type, "modbus-rtu", StringComparison.OrdinalIgnoreCase))
-                throw new DeviceException("ElectricityMeterClient requires the modbus-rtu protocol");
+            if (profile.Transport == null || profile.Protocol == null)
+                throw new DeviceException("Transport and protocol configuration are required");
+
+            var isSerialRtu = string.Equals(profile.Transport.Type, "serial", StringComparison.OrdinalIgnoreCase) &&
+                              string.Equals(profile.Protocol.Type, "modbus-rtu", StringComparison.OrdinalIgnoreCase);
+            var isTcpModbus = string.Equals(profile.Transport.Type, "tcp", StringComparison.OrdinalIgnoreCase) &&
+                              string.Equals(profile.Protocol.Type, "modbus-tcp", StringComparison.OrdinalIgnoreCase);
+            if (!isSerialRtu && !isTcpModbus)
+                throw new DeviceException("Supported combinations are serial/modbus-rtu and tcp/modbus-tcp");
 
             ITransport transport = null;
             CommClient client = null;
             try
             {
-                // 直接创建内置传输和协议，不需要注册表，也不需要电表驱动类。
-                transport = new SerialTransportFactory().Create(profile.Transport);
-                var protocol = new ModbusRtuProtocolFactory().Create(profile.Protocol);
+                // 根据 profile 直接创建传输和协议，不需要注册表，也不需要电表驱动类。
+                IProtocol protocol;
+                if (isTcpModbus)
+                {
+                    transport = new TcpTransportFactory().Create(profile.Transport);
+                    protocol = new ModbusTcpProtocolFactory().Create(profile.Protocol);
+                }
+                else
+                {
+                    transport = new SerialTransportFactory().Create(profile.Transport);
+                    protocol = new ModbusRtuProtocolFactory().Create(profile.Protocol);
+                }
                 client = new CommClient(transport, protocol, CreateClientOptions(profile.Retry));
                 return new ElectricityMeterClient(profile, client);
             }
@@ -87,7 +102,7 @@ namespace CommSdk.Samples
         }
 
         /// <summary>
-        /// 打开串口连接。
+        /// 打开配置中指定的串口或 TCP 连接。
         /// </summary>
         public void Open()
         {
@@ -96,7 +111,7 @@ namespace CommSdk.Samples
         }
 
         /// <summary>
-        /// 关闭串口连接。
+        /// 关闭配置中指定的串口或 TCP 连接。
         /// </summary>
         public void Close()
         {
@@ -169,10 +184,11 @@ namespace CommSdk.Samples
                     GetParameter(_profile.Custom, "energyByteOrder"),
                     "UInt32BE"));
 
-            // CommClient 负责串口收发、RTU 帧组装、CRC 校验、超时和重试。
+            // CommClient 负责收发、协议帧组装、校验、超时和重试。
             var response = _client.Send(new ModbusRequest
             {
-                TransactionId = 0,
+                // RTU 会忽略事务号，TCP 使用它匹配请求和响应。
+                TransactionId = NextTransactionId(),
                 SlaveId = station,
                 FunctionCode = functionCode,
                 Address = address,
@@ -208,6 +224,11 @@ namespace CommSdk.Samples
             options.RetryDelayMs = Math.Max(0, retry.DelayMs > 0 ? retry.DelayMs : options.RetryDelayMs);
             options.ExponentialBackoff = retry.ExponentialBackoff;
             return options;
+        }
+
+        private ushort NextTransactionId()
+        {
+            return (ushort)(System.Threading.Interlocked.Increment(ref _transactionId) & ushort.MaxValue);
         }
 
         private static string FirstValue(params string[] values)
