@@ -1,15 +1,10 @@
 using System;
 using System.Collections.Generic;
-using CommSdk.Core.Abstractions;
+using System.IO;
+using CommSdk.Core.Configuration;
 using CommSdk.Core.Exceptions;
-using CommSdk.Core.Managers;
-using CommSdk.Core.Models;
-using CommSdk.Core.Registries;
 using CommSdk.Core.Logging;
-using CommSdk.Devices.Drivers;
-using CommSdk.Protocols.Modbus.Factories;
-using CommSdk.Protocols.Modbus.Models;
-using CommSdk.Transports.Factories;
+using CommSdk.Core.Models;
 
 namespace CommSdk.Samples
 {
@@ -19,100 +14,69 @@ namespace CommSdk.Samples
         {
             LogManager.Current = new ConsoleLog();
 
-            var transportRegistry = new TransportRegistry();
-            transportRegistry.Register(new SerialTransportFactory());
-            transportRegistry.Register(new TcpTransportFactory());
-            transportRegistry.Register(new UdpTransportFactory());
-
-            var protocolRegistry = new ProtocolRegistry();
-            protocolRegistry.Register(new ModbusRtuProtocolFactory());
-            protocolRegistry.Register(new ModbusTcpProtocolFactory());
-            protocolRegistry.Register(new ModbusAsciiProtocolFactory());
-
-            var driverRegistry = new DriverRegistry();
-            driverRegistry.Register(new SampleDriverFactory());
-
-            var manager = new DeviceManager(transportRegistry, protocolRegistry, driverRegistry);
-
-            var profile = new DeviceProfile
+            var profile = LoadProfile(args);
+            // ElectricityMeterClient 已经封装了串口和 Modbus RTU 通信。
+            using (var meter = ElectricityMeterClient.Create(profile))
             {
-                Id = "device-1",
-                Model = "sample-device",
-                Driver = "sample-driver",
+                try
+                {
+                    // 显式打开串口，便于展示设备会话的生命周期。
+                    meter.Open();
+                    // 客户端会发送 03/04 读寄存器请求并返回换算后的 kWh 数值。
+                    var energy = meter.ReadEnergy();
+                    Console.WriteLine("累计电量: " + energy.ToString("F2", System.Globalization.CultureInfo.InvariantCulture) + " kWh");
+                }
+                catch (CommException ex)
+                {
+                    Console.Error.WriteLine("电表通信失败: " + ex.Message);
+                    Environment.ExitCode = 1;
+                }
+            }
+        }
+
+        private static DeviceProfile LoadProfile(string[] args)
+        {
+            // 传入配置文件时：dotnet run --project src/CommSdk.Samples -- profile.json
+            if (args != null && args.Length > 0 && !string.IsNullOrWhiteSpace(args[0]))
+                return DeviceProfileJsonLoader.Load(File.ReadAllText(Path.GetFullPath(args[0])));
+
+            // 未传入文件时使用下面的默认配置；实际使用时请修改 COM3 和电量寄存器参数。
+            return new DeviceProfile
+            {
+                Id = "meter-1",
+                Model = "electricity-meter",
+                Custom = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+                {
+                    // 电量寄存器地址、寄存器数量、倍率和字节序必须以电表手册为准。
+                    { "energyAddress", "0" },
+                    { "energyQuantity", "2" },
+                    { "energyScale", "0.01" },
+                    { "energyByteOrder", "UInt32BE" }
+                },
                 Transport = new TransportConfig
                 {
-                    Type = "tcp",
-                    Parameters = new Dictionary<string, string>
+                    Type = "serial",
+                    Parameters = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
                     {
-                        {"host", "127.0.0.1"},
-                        {"port", "502"}
+                        { "port", "COM3" },
+                        { "baud", "9600" },
+                        { "databits", "8" },
+                        { "parity", "None" },
+                        { "stopbits", "One" },
+                        { "readTimeoutMs", "1000" },
+                        { "writeTimeoutMs", "1000" }
                     }
                 },
                 Protocol = new ProtocolConfig
                 {
-                    Type = "modbus-tcp",
-                    Parameters = new Dictionary<string, string>()
-                }
+                    Type = "modbus-rtu",
+                    Parameters = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+                    {
+                        { "station", "1" }
+                    }
+                },
+                Retry = new RetryConfig { Count = 2, TimeoutMs = 1000, DelayMs = 100 }
             };
-
-            using (var session = manager.Create(profile))
-            {
-                Console.WriteLine("Session created for model: " + session.Profile.Model);
-                Console.WriteLine("Transport: " + session.Transport.Name + ", protocol: " + session.Protocol.Name);
-                Console.WriteLine("Call session.Open() only when a Modbus TCP endpoint is available.");
-            }
-        }
-    }
-
-    internal class SampleDriverFactory : IDeviceDriverFactory
-    {
-        public string Model { get { return "sample-device"; } }
-        public IDeviceDriver Create(DeviceProfile profile)
-        {
-            return new SampleDriver();
-        }
-    }
-
-    internal class SampleDriver : DeviceDriverBase
-    {
-        public override string Model { get { return "sample-device"; } }
-
-        public override object Read(DeviceCommand command)
-        {
-            if (command == null || !string.Equals(command.Name, "readHoldingRegisters", StringComparison.OrdinalIgnoreCase))
-                throw new DeviceException("Unsupported sample read command");
-
-            var address = ParseUShort(command, "address");
-            var quantity = ParseUShort(command, "quantity");
-            return Context.Client.Send(new ModbusRequest
-            {
-                TransactionId = 1,
-                SlaveId = 1,
-                FunctionCode = 0x03,
-                Address = address,
-                Quantity = quantity
-            });
-        }
-
-        public override void Write(DeviceCommand command, object value)
-        {
-            throw new DeviceException("Sample driver does not implement write commands");
-        }
-
-        public override object Execute(DeviceCommand command)
-        {
-            throw new DeviceException("Sample driver does not implement execute commands");
-        }
-
-        private static ushort ParseUShort(DeviceCommand command, string key)
-        {
-            string value;
-            if (command.Parameters == null || !command.Parameters.TryGetValue(key, out value))
-                throw new DeviceException("Missing command parameter: " + key);
-            ushort parsed;
-            if (!ushort.TryParse(value, out parsed))
-                throw new DeviceException("Invalid command parameter: " + key);
-            return parsed;
         }
     }
 }

@@ -47,6 +47,9 @@ namespace CommSdk.Core.Configuration
                 Id = dto.Device.Id,
                 Model = dto.Device.Model,
                 Driver = dto.Device.Driver,
+                Custom = dto.Device.Custom == null
+                    ? new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+                    : new Dictionary<string, string>(dto.Device.Custom, StringComparer.OrdinalIgnoreCase),
                 Transport = new TransportConfig
                 {
                     Type = dto.Transport.Type,
@@ -120,6 +123,7 @@ namespace CommSdk.Core.Configuration
             [DataMember(Name = "id")] public string Id { get; set; }
             [DataMember(Name = "model")] public string Model { get; set; }
             [DataMember(Name = "driver")] public string Driver { get; set; }
+            [DataMember(Name = "custom")] public Dictionary<string, string> Custom { get; set; }
         }
 
         [DataContract]

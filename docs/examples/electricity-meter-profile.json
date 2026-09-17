@@ -1,0 +1,33 @@
+{
+  "device": {
+    "id": "meter-1",
+    "model": "electricity-meter",
+    "custom": {
+      "energyAddress": "0",
+      "energyQuantity": "2",
+      "energyScale": "0.01",
+      "energyByteOrder": "UInt32BE"
+    }
+  },
+  "transport": {
+    "type": "serial",
+    "port": "COM3",
+    "baud": 9600,
+    "databits": 8,
+    "parity": "None",
+    "stopbits": "One",
+    "readTimeoutMs": 1000,
+    "writeTimeoutMs": 1000,
+    "bufferSize": 4096
+  },
+  "protocol": {
+    "type": "modbus-rtu",
+    "station": 1
+  },
+  "retry": {
+    "count": 2,
+    "timeoutMs": 1000,
+    "delayMs": 100,
+    "exponentialBackoff": true
+  }
+}

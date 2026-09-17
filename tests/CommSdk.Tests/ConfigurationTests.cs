@@ -20,8 +20,25 @@ namespace CommSdk.Tests
             Assert.Equal("COM3", profile.Transport.Parameters["port"]);
             Assert.Equal("9600", profile.Transport.Parameters["baud"]);
             Assert.Equal("1", profile.Protocol.Parameters["station"]);
+            Assert.NotNull(profile.Custom);
             Assert.Equal(3, profile.Retry.Count);
             Assert.Equal("INFO", profile.Logging.Level);
+        }
+
+        [Fact]
+        public void LoadsDeviceCustomParameters()
+        {
+            var profile = DeviceProfileJsonLoader.Load(@"{
+              ""device"": {
+                ""model"": ""electricity-meter"",
+                ""custom"": { ""energyAddress"": ""256"", ""energyScale"": ""0.1"" }
+              },
+              ""transport"": { ""type"": ""serial"", ""port"": ""COM3"" },
+              ""protocol"": { ""type"": ""modbus-rtu"", ""station"": 1 }
+            }");
+
+            Assert.Equal("256", profile.Custom["energyAddress"]);
+            Assert.Equal("0.1", profile.Custom["energyScale"]);
         }
     }
 }

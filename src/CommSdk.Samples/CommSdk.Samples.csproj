@@ -8,6 +8,5 @@
     <ProjectReference Include="..\CommSdk.Core\CommSdk.Core.csproj" />
     <ProjectReference Include="..\CommSdk.Transports\CommSdk.Transports.csproj" />
     <ProjectReference Include="..\CommSdk.Protocols.Modbus\CommSdk.Protocols.Modbus.csproj" />
-    <ProjectReference Include="..\CommSdk.Devices\CommSdk.Devices.csproj" />
   </ItemGroup>
 </Project>

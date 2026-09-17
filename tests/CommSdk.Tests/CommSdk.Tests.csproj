@@ -8,6 +8,7 @@
     <ProjectReference Include="..\..\src\CommSdk.Core\CommSdk.Core.csproj" />
     <ProjectReference Include="..\..\src\CommSdk.Protocols.Modbus\CommSdk.Protocols.Modbus.csproj" />
     <ProjectReference Include="..\..\src\CommSdk.Transports\CommSdk.Transports.csproj" />
+    <ProjectReference Include="..\..\src\CommSdk.Samples\CommSdk.Samples.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
