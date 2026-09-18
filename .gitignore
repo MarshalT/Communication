@@ -1,0 +1,26 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/.vs/CommSdk
+/src/CommSdk.Core/bin
+/src/CommSdk.Core/obj
+/src/CommSdk.Devices/bin
+/src/CommSdk.Devices/obj/Debug/net48
+/src/CommSdk.Devices/obj/Release/net48
+/src/CommSdk.Devices/obj
+/src/CommSdk.Protocols.Modbus/bin
+/src/CommSdk.Protocols.Modbus/obj/Debug/net48
+/src/CommSdk.Protocols.Modbus/obj/Release/net48
+/src/CommSdk.Protocols.Modbus/obj
+/src/CommSdk.Samples/bin
+/src/CommSdk.Samples/obj/Debug/net48
+/src/CommSdk.Samples/obj/Release/net48
+/src/CommSdk.Samples/obj
+/src/CommSdk.Transports/bin
+/src/CommSdk.Transports/obj/Debug/net48
+/src/CommSdk.Transports/obj/Release/net48
+/src/CommSdk.Transports/obj
+/tests/CommSdk.Tests/bin
+/tests/CommSdk.Tests/obj
+/.vs
