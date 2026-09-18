@@ -1,4 +1,8 @@
+using System;
 using CommSdk.Core.Configuration;
+using CommSdk.Core.Exceptions;
+using CommSdk.Core.Models;
+using CommSdk.Framework;
 using Xunit;
 
 namespace CommSdk.Tests
@@ -39,6 +43,75 @@ namespace CommSdk.Tests
 
             Assert.Equal("256", profile.Custom["energyAddress"]);
             Assert.Equal("0.1", profile.Custom["energyScale"]);
+        }
+
+        [Fact]
+        public void ResolvesTcpModbusCommunicationMode()
+        {
+            var mode = CommunicationProfileResolver.Resolve(new DeviceProfile
+            {
+                Transport = new TransportConfig { Type = "TCP" },
+                Protocol = new ProtocolConfig { Type = "MODBUS-TCP" }
+            });
+
+            Assert.Equal(CommunicationMode.ModbusTcp, mode);
+        }
+
+        [Fact]
+        public void ResolvesSerialRtuCommunicationMode()
+        {
+            var mode = CommunicationProfileResolver.Resolve(new DeviceProfile
+            {
+                Transport = new TransportConfig { Type = "serial" },
+                Protocol = new ProtocolConfig { Type = "modbus-rtu" }
+            });
+
+            Assert.Equal(CommunicationMode.ModbusRtu, mode);
+        }
+
+        [Fact]
+        public void RejectsUnsupportedCommunicationCombination()
+        {
+            Assert.Throws<DeviceException>(() => CommunicationProfileResolver.Resolve(new DeviceProfile
+            {
+                Transport = new TransportConfig { Type = "udp" },
+                Protocol = new ProtocolConfig { Type = "modbus-tcp" }
+            }));
+        }
+
+        [Fact]
+        public void RejectsMissingCommunicationConfiguration()
+        {
+            Assert.Throws<ArgumentNullException>(() => CommunicationProfileResolver.Resolve(null));
+            Assert.Throws<DeviceException>(() => CommunicationProfileResolver.Resolve(new DeviceProfile()));
+        }
+
+        [Fact]
+        public void CreatesClientDirectlyFromTcpProfile()
+        {
+            using (var client = CommClientFactory.Create(new DeviceProfile
+            {
+                Transport = new TransportConfig { Type = "tcp" },
+                Protocol = new ProtocolConfig { Type = "modbus-tcp" }
+            }))
+            {
+                Assert.Equal("tcp", client.Transport.Name);
+                Assert.Equal("modbus-tcp", client.Protocol.Name);
+            }
+        }
+
+        [Fact]
+        public void CreatesClientDirectlyFromSerialProfile()
+        {
+            using (var client = CommClientFactory.Create(new DeviceProfile
+            {
+                Transport = new TransportConfig { Type = "serial" },
+                Protocol = new ProtocolConfig { Type = "modbus-rtu" }
+            }))
+            {
+                Assert.Equal("serial", client.Transport.Name);
+                Assert.Equal("modbus-rtu", client.Protocol.Name);
+            }
         }
     }
 }

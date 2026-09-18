@@ -6,6 +6,7 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\CommSdk.Core\CommSdk.Core.csproj" />
+    <ProjectReference Include="..\..\src\CommSdk.Framework\CommSdk.Framework.csproj" />
     <ProjectReference Include="..\..\src\CommSdk.Protocols.Modbus\CommSdk.Protocols.Modbus.csproj" />
     <ProjectReference Include="..\..\src\CommSdk.Transports\CommSdk.Transports.csproj" />
     <ProjectReference Include="..\..\src\CommSdk.Samples\CommSdk.Samples.csproj" />

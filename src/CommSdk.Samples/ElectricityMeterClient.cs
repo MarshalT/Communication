@@ -2,14 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using CommSdk.Core.Abstractions;
 using CommSdk.Core.Configuration;
 using CommSdk.Core.Exceptions;
 using CommSdk.Core.Managers;
 using CommSdk.Core.Models;
-using CommSdk.Protocols.Modbus.Factories;
 using CommSdk.Protocols.Modbus.Models;
-using CommSdk.Transports.Factories;
+using CommSdk.Framework;
 
 namespace CommSdk.Samples
 {
@@ -24,9 +22,7 @@ namespace CommSdk.Samples
         private int _transactionId;
         private int _disposed;
 
-        private ElectricityMeterClient(
-            DeviceProfile profile,
-            CommClient client)
+        private ElectricityMeterClient(DeviceProfile profile, CommClient client)
         {
             _profile = profile;
             _client = client;
@@ -37,42 +33,7 @@ namespace CommSdk.Samples
         /// </summary>
         public static ElectricityMeterClient Create(DeviceProfile profile)
         {
-            if (profile == null) throw new ArgumentNullException("profile");
-            if (profile.Transport == null || profile.Protocol == null)
-                throw new DeviceException("Transport and protocol configuration are required");
-
-            var isSerialRtu = string.Equals(profile.Transport.Type, "serial", StringComparison.OrdinalIgnoreCase) &&
-                              string.Equals(profile.Protocol.Type, "modbus-rtu", StringComparison.OrdinalIgnoreCase);
-            var isTcpModbus = string.Equals(profile.Transport.Type, "tcp", StringComparison.OrdinalIgnoreCase) &&
-                              string.Equals(profile.Protocol.Type, "modbus-tcp", StringComparison.OrdinalIgnoreCase);
-            if (!isSerialRtu && !isTcpModbus)
-                throw new DeviceException("Supported combinations are serial/modbus-rtu and tcp/modbus-tcp");
-
-            ITransport transport = null;
-            CommClient client = null;
-            try
-            {
-                // 根据 profile 直接创建传输和协议，不需要注册表，也不需要电表驱动类。
-                IProtocol protocol;
-                if (isTcpModbus)
-                {
-                    transport = new TcpTransportFactory().Create(profile.Transport);
-                    protocol = new ModbusTcpProtocolFactory().Create(profile.Protocol);
-                }
-                else
-                {
-                    transport = new SerialTransportFactory().Create(profile.Transport);
-                    protocol = new ModbusRtuProtocolFactory().Create(profile.Protocol);
-                }
-                client = new CommClient(transport, protocol, CreateClientOptions(profile.Retry));
-                return new ElectricityMeterClient(profile, client);
-            }
-            catch
-            {
-                if (client != null) client.Dispose();
-                else if (transport != null) transport.Dispose();
-                throw;
-            }
+            return new ElectricityMeterClient(profile, CommClientFactory.Create(profile));
         }
 
         /// <summary>
@@ -223,18 +184,6 @@ namespace CommSdk.Samples
         {
             if (System.Threading.Interlocked.Exchange(ref _disposed, 1) != 0) return;
             _client.Dispose();
-        }
-
-        private static CommClientOptions CreateClientOptions(RetryConfig retry)
-        {
-            var options = new CommClientOptions();
-            if (retry == null) return options;
-
-            options.RetryCount = Math.Max(0, retry.Count);
-            options.TimeoutMs = Math.Max(0, retry.TimeoutMs);
-            options.RetryDelayMs = Math.Max(0, retry.DelayMs > 0 ? retry.DelayMs : options.RetryDelayMs);
-            options.ExponentialBackoff = retry.ExponentialBackoff;
-            return options;
         }
 
         private ushort NextTransactionId()
