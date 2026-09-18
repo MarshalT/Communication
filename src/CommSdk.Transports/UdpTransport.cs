@@ -1,6 +1,7 @@
 using System;
 using System.Net;
 using System.Net.Sockets;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using CommSdk.Core.Abstractions;
@@ -91,6 +92,12 @@ namespace CommSdk.Transports
                 LogManager.Current.Error("UdpTransport", "Failed to send UDP data", ex);
                 throw new TransportException("Failed to send UDP data", ex);
             }
+        }
+
+        public void Send(string payload)
+        {
+            if (payload == null) throw new ArgumentNullException("payload");
+            Send(Encoding.UTF8.GetBytes(payload));
         }
 
         public byte[] Receive()

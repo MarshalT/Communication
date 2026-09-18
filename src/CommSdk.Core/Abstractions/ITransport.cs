@@ -14,6 +14,8 @@ namespace CommSdk.Core.Abstractions
         void Open();
         void Close();
         void Send(byte[] payload);
+        // Text payloads are encoded as UTF-8 before being sent.
+        void Send(string payload);
         byte[] Receive();
 
         Task OpenAsync(CancellationToken cancellationToken = default(CancellationToken));

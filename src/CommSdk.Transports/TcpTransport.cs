@@ -1,5 +1,6 @@
 using System;
 using System.Net.Sockets;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using CommSdk.Core.Abstractions;
@@ -103,6 +104,12 @@ namespace CommSdk.Transports
                     throw new TransportException("Failed to send TCP data", ex);
                 }
             }
+        }
+
+        public void Send(string payload)
+        {
+            if (payload == null) throw new ArgumentNullException("payload");
+            Send(Encoding.UTF8.GetBytes(payload));
         }
 
         public byte[] Receive()

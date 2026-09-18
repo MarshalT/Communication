@@ -119,6 +119,17 @@ namespace CommSdk.Samples
             _client.Close();
         }
 
+
+
+
+        public void test()
+        {
+            _client.Transport.Send(new byte[] {0x12,0x13});
+            _client.Transport.Send("123456");
+
+        }
+
+
         /// <summary>
         /// 读取累计电量，返回单位为 kWh。
         /// parameters 可临时覆盖站号、寄存器地址、数量、倍率和字节序。

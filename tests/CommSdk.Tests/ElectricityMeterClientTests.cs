@@ -50,8 +50,8 @@ namespace CommSdk.Tests
                     var request = await ReadExact(stream, 12).ConfigureAwait(false);
                     Assert.Equal((byte)0, request[2]);
                     Assert.Equal((byte)0, request[3]);
-                    Assert.Equal((byte)1, request[7]);
-                    Assert.Equal((byte)3, request[8]);
+                    Assert.Equal((byte)1, request[6]);
+                    Assert.Equal((byte)3, request[7]);
 
                     // 返回 0x00003039，按 0.01 倍率换算为 123.45 kWh。
                     var response = new byte[]

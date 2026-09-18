@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using CommSdk.Core.Abstractions;
@@ -49,6 +50,12 @@ namespace CommSdk.Tests
             var copy = new byte[payload.Length];
             Buffer.BlockCopy(payload, 0, copy, 0, payload.Length);
             Sent.Add(copy);
+        }
+
+        public void Send(string payload)
+        {
+            if (payload == null) throw new ArgumentNullException("payload");
+            Send(Encoding.UTF8.GetBytes(payload));
         }
 
         public byte[] Receive()

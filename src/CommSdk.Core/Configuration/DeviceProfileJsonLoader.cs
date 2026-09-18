@@ -25,7 +25,14 @@ namespace CommSdk.Core.Configuration
             ProfileDto dto;
             try
             {
-                var serializer = new DataContractJsonSerializer(typeof(ProfileDto));
+                var serializer = new DataContractJsonSerializer(
+                    typeof(ProfileDto),
+                    new DataContractJsonSerializerSettings
+                    {
+                        // Device custom parameters are represented as a JSON object:
+                        // { "energyAddress": "40000" }.
+                        UseSimpleDictionaryFormat = true
+                    });
                 dto = serializer.ReadObject(stream) as ProfileDto;
             }
             catch (SerializationException ex)
