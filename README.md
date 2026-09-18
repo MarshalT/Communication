@@ -16,6 +16,44 @@ The framework is one assembly, while its source and public namespaces remain sep
 - `CommSdk.Devices`: generic driver base class, reflection factory, and assembly loader.
 - `CommSdk.Framework`: profile-based client factory.
 
+## Architecture
+
+```mermaid
+flowchart TB
+    App[业务应用 / CommSdk.Samples]
+    Profile[JSON DeviceProfile]
+
+    subgraph Library[CommSdk.dll - .NET Framework 4.8]
+        Framework[CommSdk.Framework<br/>配置驱动的客户端工厂]
+        Core[CommSdk.Core<br/>契约、配置、客户端、会话、注册表]
+        Devices[CommSdk.Devices<br/>设备驱动扩展]
+        Protocols[CommSdk.Protocols.Modbus<br/>RTU / TCP / ASCII]
+        Transports[CommSdk.Transports<br/>Serial / TCP / UDP]
+    end
+
+    App --> Framework
+    App --> Core
+    Profile --> Framework
+    Framework --> Core
+    Core --> Devices
+    Core --> Protocols
+    Core --> Transports
+
+    Protocols --> Rtu[Modbus RTU]
+    Protocols --> Tcp[Modbus TCP]
+    Protocols --> Ascii[Modbus ASCII]
+    Transports --> Serial[串口]
+    Transports --> Socket[TCP / UDP Socket]
+
+    Rtu --> Meter[电表 / 工业设备]
+    Tcp --> Meter
+    Ascii --> Meter
+    Serial --> Meter
+    Socket --> Meter
+```
+
+请求流程为：业务应用加载 `DeviceProfile`，由 `CommSdk.Framework` 创建客户端；`CommSdk.Core` 负责请求生命周期和协议/传输协作，协议层完成报文编解码，传输层负责串口或 Socket 收发，最后访问现场设备。新增协议、传输或设备驱动时，只需在对应命名空间实现扩展接口并注册工厂。
+
 ## Build and test
 
 Open `CommSdk.sln` in Visual Studio with .NET Framework 4.8 targeting support, or run:
