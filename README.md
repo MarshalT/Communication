@@ -4,12 +4,17 @@ CommSdk is a layered C# communication SDK targeting .NET Framework 4.8. It provi
 
 ## Projects
 
+- `src/CommSdk/CommSdk.csproj`: the single framework library, output as `CommSdk.dll`.
+- `src/CommSdk.Samples`: an independent executable usage example.
+- `tests/CommSdk.Tests`: protocol, profile, framing, retry, and sample integration tests.
+
+The framework is one assembly, while its source and public namespaces remain separated by responsibility:
+
 - `CommSdk.Core`: contracts, profiles, registries, client, session lifecycle, and logging.
 - `CommSdk.Transports`: serial, TCP, and UDP implementations.
 - `CommSdk.Protocols.Modbus`: Modbus framing, CRC/LRC, validation, and factories.
 - `CommSdk.Devices`: generic driver base class, reflection factory, and assembly loader.
-- `CommSdk.Samples`: executable usage example.
-- `tests/CommSdk.Tests`: protocol, profile, framing, and retry tests.
+- `CommSdk.Framework`: profile-based client factory.
 
 ## Build and test
 
@@ -22,7 +27,7 @@ dotnet test CommSdk.sln
 
 The target framework is `net48`; building the SDK on macOS requires a Windows/.NET Framework-compatible build environment for the final verification.
 
-如果 Windows 上打开解决方案后显示 `0 of 6 projects` 或 `The project file was unloaded`，请使用 Visual Studio 2022，并在 Visual Studio Installer 中安装“使用 .NET 的桌面开发”、“.NET Framework 4.8 SDK”和“.NET Framework 4.8 Targeting Pack”。关闭解决方案后，在仓库根目录执行 `dotnet restore CommSdk.sln`，再重新打开 `CommSdk.sln`；如果项目节点仍是灰色，可右键解决方案或项目选择 `Reload Project`，然后查看 `View > Output > Project and Solution` 中的具体错误。若之前手动卸载过项目，请先关闭 Visual Studio，再删除仓库根目录下的 `.vs` 用户缓存目录后重开。仓库根目录的 `.vsconfig` 可用于导入所需组件。
+如果 Windows 上打开解决方案后显示 `0 of 3 projects` 或 `The project file was unloaded`，请使用 Visual Studio 2022，并在 Visual Studio Installer 中安装“使用 .NET 的桌面开发”、“.NET Framework 4.8 SDK”和“.NET Framework 4.8 Targeting Pack”。关闭解决方案后，在仓库根目录执行 `dotnet restore CommSdk.sln`，再重新打开 `CommSdk.sln`；如果项目节点仍是灰色，可右键解决方案或项目选择 `Reload Project`，然后查看 `View > Output > Project and Solution` 中的具体错误。若之前手动卸载过项目，请先关闭 Visual Studio，再删除仓库根目录下的 `.vs` 用户缓存目录后重开。仓库根目录的 `.vsconfig` 可用于导入所需组件。
 
 ## Register and use a device
 

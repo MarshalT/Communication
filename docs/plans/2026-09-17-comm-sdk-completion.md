@@ -2,9 +2,11 @@
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
+> **Current layout note:** This historical implementation plan was written for the original multi-project layout. The completed framework is now consolidated into `src/CommSdk/CommSdk.csproj`; the responsibility folders and namespaces described below are retained inside that single assembly.
+
 **Goal:** Turn the existing .NET Framework 4.8 communication SDK skeleton into a testable first release with framed request/response handling, lifecycle management, JSON profiles, and usable examples.
 
-**Architecture:** Keep the existing Core/Transports/Protocols/Devices layering. Add small optional protocol capabilities for frame boundary detection and response validation so `CommClient` can serialize requests without coupling Core to Modbus. Make `DeviceSession` own the transport/client lifecycle, while transport implementations expose cancellable chunk I/O and protocol implementations assemble complete frames.
+**Architecture:** Keep the existing Core/Transports/Protocols/Devices layering as separated folders and namespaces inside one assembly. Add small optional protocol capabilities for frame boundary detection and response validation so `CommClient` can serialize requests without coupling Core to Modbus. Make `DeviceSession` own the transport/client lifecycle, while transport implementations expose cancellable chunk I/O and protocol implementations assemble complete frames.
 
 **Tech Stack:** C# SDK-style projects targeting `net48`, `DataContractJsonSerializer` for dependency-free profile loading, xUnit for tests, TCP loopback integration tests, and Visual Studio/.NET CLI solution metadata.
 

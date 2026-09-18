@@ -5,7 +5,6 @@
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\CommSdk.Core\CommSdk.Core.csproj" />
-    <ProjectReference Include="..\CommSdk.Framework\CommSdk.Framework.csproj" />
+    <ProjectReference Include="..\CommSdk\CommSdk.csproj" />
   </ItemGroup>
 </Project>

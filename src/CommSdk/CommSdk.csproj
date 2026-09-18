@@ -2,6 +2,8 @@
   <PropertyGroup>
     <TargetFramework>net48</TargetFramework>
     <LangVersion>latest</LangVersion>
+    <AssemblyName>CommSdk</AssemblyName>
+    <RootNamespace>CommSdk</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System.Runtime.Serialization" />
